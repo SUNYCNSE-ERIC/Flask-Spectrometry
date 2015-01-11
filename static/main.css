@@ -1,0 +1,47 @@
+@import url(http://fonts.googleapis.com/css?family=Raleway);
+
+* {
+	margin: 0;
+}
+
+html, body {
+    font-family: "Raleway";
+}
+
+#upload-form {
+    position: relative;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
+}
+
+#up-input {
+    display: none;
+}
+
+#upload {
+    width: 200px;
+    height: 100px;
+    font-weight: bolder;
+    font-size: 1.5em;
+    background: none;
+    border: solid black 3px;
+    padding: 3px;
+    transition: 0.3s;
+}
+
+#upload:hover {
+    cursor: pointer;
+    opacity: 0.5;
+}
+
+h1 {
+    text-align: center;
+}
+
+.file-list {
+    font-size: 1.5em;
+    position: relative;
+    margin: 0 auto;
+    width: 70%;
+}
