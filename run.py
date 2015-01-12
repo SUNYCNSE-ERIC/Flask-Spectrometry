@@ -2,7 +2,6 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory, jsonify, send_file
 from werkzeug import secure_filename
 from netCDFtoCSV import convertFile
-from pandas.io.parsers import read_csv
 import StringIO
 
 app = Flask(__name__)
