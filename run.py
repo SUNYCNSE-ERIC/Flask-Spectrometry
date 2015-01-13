@@ -81,30 +81,34 @@ def sub_background(filename):
     x = data[:,0]
     y = data[:,1]
     filtered = testGauss(x,y)
-    filtered_sum = cum_sum(filtered)
+    filtered_sum, mov_sum = sums(filtered)
 
     bg_filter_file = filename + '-bg-filtered.csv'
 
     with file(os.path.join(app.config['UPLOAD_FOLDER'],bg_filter_file), 'w') as f:
         f.write('Cumulative Sum,' + str(filtered_sum) + '\n')
-        f.write('Time,Total\n')
+        f.write('Time,Counts,Moving Sum\n')
         for i in xrange(len(x)):
-            f.write(str(x[i]) + ',' + str(filtered[i]) + '\n')
-
+            f.write(str(x[i]) + ',' + str(filtered[i]) + ',' + str(mov_sum[i]) + '\n')
 
     return send_file(os.path.join(app.config['UPLOAD_FOLDER'],bg_filter_file), attachment_filename=bg_filter_file,as_attachment=True)
 
-def cum_sum(filtered):
+def sums(filtered):
     cum_sum = 0
-    flag = 0
+    mov_sum = np.array([])
+    flag1 = 0
+    flag2 = 0
     for i in filtered:
-        if not flag and i > 0:
-            flag = 1
-        if flag and i < 0:
-            break
-        if flag:
+        if not flag1 and i > 0:
+            flag1 = 1
+        if flag1 and i < 0:
+            flag2 = 1
+        if flag1 and not flag2:
             cum_sum += i
-    return cum_sum
+            mov_sum = np.append(mov_sum, mov_sum[-1]+i)
+        else:
+            mov_sum = np.append(mov_sum, mov_sum[-1])
+    return cum_sum, mov_sum
 
 def testGauss(x, y):
     b = gaussian(39, 10)
