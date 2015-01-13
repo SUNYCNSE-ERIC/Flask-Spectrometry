@@ -2,7 +2,9 @@ import os
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory, jsonify, send_file
 from werkzeug import secure_filename
 from netCDFtoCSV import convertFile
-import StringIO
+import numpy as np
+from scipy.signal import gaussian
+from scipy.ndimage import filters
 
 app = Flask(__name__)
 app.debug = True
@@ -15,8 +17,14 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
+def ensure_dir(f):
+    d = os.path.dirname(f)
+    if not os.path.exists(d):
+        os.makedirs(d)
+
 @app.route('/', methods=['GET'])
 def index():
+    ensure_dir(app.config['UPLOAD_FOLDER'])
     file_list = [".".join(f.split(".")[:-1]) for f in os.listdir(UPLOAD_FOLDER) if allowed_file(f)]
     return  render_template('index.html', file_list=file_list)
 
@@ -64,17 +72,44 @@ def sub_background(filename):
 
     bg_file = filename + '-bg-subtracted.csv'
 
-    f = StringIO.StringIO()
-    f.write('Time,Total\n')
-    for i in xrange(len(time)):
-        f.write(str(time[i]) + ',' + str(total[i]) + '\n')
+    with file(os.path.join(app.config['UPLOAD_FOLDER'],bg_file), 'w') as f:
+        f.write('Time,Total\n')
+        for i in xrange(len(time)):
+            f.write(str(time[i]) + ',' + str(total[i]) + '\n')
 
-    # with file(bg_file, 'w') as f:
-    #     f.write('Time,Total\n')
-    #     for i in xrange(len(time)):
-    #         f.write(str(time[i]) + ',' + str(total[i]) + '\n')
+    data = np.genfromtxt(os.path.join(app.config['UPLOAD_FOLDER'],bg_file), delimiter=',', skip_header=1)
+    x = data[:,0]
+    y = data[:,1]
+    filtered = testGauss(x,y)
+    filtered_sum = cum_sum(filtered)
 
-    return send_file(f, attachment_filename=bg_file,as_attachment=True)
+    bg_filter_file = filename + '-bg-filtered.csv'
+
+    with file(os.path.join(app.config['UPLOAD_FOLDER'],bg_filter_file), 'w') as f:
+        f.write('Cumulative Sum,' + str(filtered_sum) + '\n')
+        f.write('Time,Total\n')
+        for i in xrange(len(x)):
+            f.write(str(x[i]) + ',' + str(filtered[i]) + '\n')
+
+
+    return send_file(os.path.join(app.config['UPLOAD_FOLDER'],bg_filter_file), attachment_filename=bg_filter_file,as_attachment=True)
+
+def cum_sum(filtered):
+    cum_sum = 0
+    flag = 0
+    for i in filtered:
+        if not flag and i > 0:
+            flag = 1
+        if flag and i < 0:
+            break
+        if flag:
+            cum_sum += i
+    return cum_sum
+
+def testGauss(x, y):
+    b = gaussian(39, 10)
+    ga = filters.convolve1d(y, b/b.sum())
+    return ga
 
 if __name__ == '__main__':
     app.run()
