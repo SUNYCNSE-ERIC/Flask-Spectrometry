@@ -9,11 +9,19 @@
         <button id="upload">Choose Files</button>
     </form>
     <h1>
-        Or view previous data...
+        Background Subtract/Filter Data
     </h1>
     <ul class="file-list">
     {% for file in file_list %}
       <li><a href="/view/{{ file }}">{{ file }}</a></li>
+    {% endfor %}
+    </ul>
+    <h1>
+        View Filtered Data
+    </h1>
+    <ul class="file-list">
+    {% for file in smoothed %}
+      <li><a href="/smooth/{{ file }}">{{ file }}</a></li>
     {% endfor %}
     </ul>
 <script src="{{ url_for('static', filename='jquery-2.1.3.min.js') }}"></script>

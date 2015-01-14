@@ -41,8 +41,8 @@ button:hover {
   shape-rendering: crispEdges;
 }
 
-path { 
-    stroke: steelblue;
+path {
+    stroke: black; 
     stroke-width: 2;
     fill: none;
 }

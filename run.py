@@ -17,6 +17,9 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
+def is_filtered(filename):
+    return '.' in filename and filename.split('-')[-1] == 'filtered.csv'
+
 def ensure_dir(f):
     d = os.path.dirname(f)
     if not os.path.exists(d):
@@ -26,7 +29,8 @@ def ensure_dir(f):
 def index():
     ensure_dir(app.config['UPLOAD_FOLDER'])
     file_list = [".".join(f.split(".")[:-1]) for f in os.listdir(UPLOAD_FOLDER) if allowed_file(f)]
-    return  render_template('index.html', file_list=file_list)
+    smoothed_files = ['-'.join('.'.join(f.split(".")[:-1]).split('-')[:-2]) for f in os.listdir(UPLOAD_FOLDER) if is_filtered(f)]
+    return  render_template('index.html', file_list=file_list, smoothed = smoothed_files)
 
 @app.route('/upload', methods=['POST'])
 def upload():
@@ -47,9 +51,21 @@ def view_file(filename):
     else:
         return redirect(url_for('index'))
 
+@app.route('/smooth/<filename>')
+def view_smooth(filename):
+    filename = os.path.join(app.config['UPLOAD_FOLDER'], filename + '-bg-filtered.csv')
+    if os.path.isfile(filename):
+        return render_template('smooth.html', filename=filename)
+    else:
+        return redirect(url_for('index'))   
+
 @app.route('/data/<filename>')
 def return_data(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename +'.csv')
+
+@app.route('/smoothdata/<filename>')
+def return_smooth_data(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename +'-bg-filtered.csv')
 
 @app.route('/background/<filename>')
 def sub_background(filename):
@@ -86,10 +102,12 @@ def sub_background(filename):
     bg_filter_file = filename + '-bg-filtered.csv'
 
     with file(os.path.join(app.config['UPLOAD_FOLDER'],bg_filter_file), 'w') as f:
-        f.write('Cumulative Sum,' + str(filtered_sum) + '\n')
-        f.write('Time,Counts,Moving Sum\n')
+        f.write('Time,Counts,Moving Sum,Cumulative\n')
         for i in xrange(len(x)):
-            f.write(str(x[i]) + ',' + str(filtered[i]) + ',' + str(mov_sum[i]) + '\n')
+            f.write(str(x[i]) + ',' + str(filtered[i]) + ',' + str(mov_sum[i]))
+            if i == 0:
+                f.write(',' + str(filtered_sum))
+            f.write('\n')
 
     return send_file(os.path.join(app.config['UPLOAD_FOLDER'],bg_filter_file), attachment_filename=bg_filter_file,as_attachment=True)
 
@@ -105,9 +123,15 @@ def sums(filtered):
             flag2 = 1
         if flag1 and not flag2:
             cum_sum += i
-            mov_sum = np.append(mov_sum, mov_sum[-1]+i)
+            try:
+                mov_sum = np.append(mov_sum, mov_sum[-1]+i)
+            except IndexError:
+                mov_sum = np.append(mov_sum, i)
         else:
-            mov_sum = np.append(mov_sum, mov_sum[-1])
+            try:
+                mov_sum = np.append(mov_sum, mov_sum[-1])
+            except IndexError:
+                mov_sum = np.append(mov_sum, 0)
     return cum_sum, mov_sum
 
 def testGauss(x, y):
