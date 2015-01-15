@@ -21,6 +21,10 @@ def genCounts(path,filename):
             if v['intensity_values'][i] != 0 and prev == 0:
                 cur += 1
             mass = round(v['mass_values'][i])
+            if mass < 1:
+                mass = 1
+            elif mass > 200:
+                mass = 200  
             counts[cur,mass-1] += v['intensity_values'][i]
             prev = v['intensity_values'][i]
     pos_masses = [i+1 for i in xrange(counts.shape[1]) if not all(count == 0 for count in counts[:,i])]

@@ -51,6 +51,14 @@ def view_file(filename):
     else:
         return redirect(url_for('index'))
 
+@app.route('/viewrange/<filename>')
+def view_range(filename):
+    filename = os.path.join(app.config['UPLOAD_FOLDER'], filename +'.csv')
+    if os.path.isfile(filename):
+        return render_template('viewrange.html', filename=filename)
+    else:
+        return redirect(url_for('index'))
+
 @app.route('/smooth/<filename>')
 def view_smooth(filename):
     filename = os.path.join(app.config['UPLOAD_FOLDER'], filename + '-bg-filtered.csv')
