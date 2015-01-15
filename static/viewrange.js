@@ -23,12 +23,16 @@ var margin = {top: 30, right: 20, bottom: 30, left: 150},
 //var x = d3.time.scale().range([0, width]);
 var x = d3.scale.linear().range([0, width]);
 var y = d3.scale.linear().range([height, 0]);
+var y2 = d3.scale.linear().range([height, 0]);
 
 // Define the axes
 var xAxis = d3.svg.axis().scale(x)
     .orient("bottom").ticks(5);
 
 var yAxis = d3.svg.axis().scale(y)
+    .orient("left").ticks(5);
+
+var yAxis2 = d3.svg.axis().scale(y2)
     .orient("left").ticks(5);
 
 // Define the linear line
@@ -104,6 +108,8 @@ d3.csv(url , function(error, data) {
 
     y.domain([0, d3.max(data, function(d) { return d.total })]);
 
+    y2.domain([0, d3.max(data, function(d) { return d.filt_total })]);
+
     $('button').click(function(e) {
         e.preventDefault();
         min = $('#minmass').val();
@@ -117,12 +123,14 @@ d3.csv(url , function(error, data) {
                 }
             }
         });
+        y2.domain([0, d3.max(data, function(d) { return d.filt_total })]);
+        svg2.select('.y.axis').call(yAxis2);
         svg2.selectAll("dot")
             .data(data)
             .enter().append("circle")
             .attr("r",1)
             .attr("cx", function(d) { return x(d.Time) ; })
-            .attr("cy", function(d) { return y(d.filt_total); })
+            .attr("cy", function(d) { return y2(d.filt_total); })
             .attr("fill","steelblue")
             .attr("stroke","steelblue");
     });
@@ -156,7 +164,7 @@ d3.csv(url , function(error, data) {
         .enter().append("circle")
         .attr("r",1)
         .attr("cx", function(d) { return x(d.Time) ; })
-        .attr("cy", function(d) { return y(d.filt_total); })
+        .attr("cy", function(d) { return y2(d.filt_total); })
         .attr("fill","steelblue")
         .attr("stroke","steelblue");
         
@@ -172,6 +180,6 @@ d3.csv(url , function(error, data) {
     // Add the Y Axis
     svg2.append("g")
         .attr("class", "y axis")
-        .call(yAxis);
+        .call(yAxis2);
 
 });
