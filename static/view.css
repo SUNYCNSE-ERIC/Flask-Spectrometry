@@ -27,6 +27,7 @@ button {
     background: none;
     border: solid black 3px;
     padding: 3px;
+    margin: 10px;
     transition: 0.3s;
 }
 

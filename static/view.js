@@ -3,7 +3,40 @@ function isInt(value) {
   return !isNaN(value) && (x | 0) === x;
 }
 
+// attach the .equals method to Array's prototype to call it on any array
+Array.prototype.equals = function (array) {
+    // if the other array is a falsy value, return
+    if (!array)
+        return false;
+
+    // compare lengths - can save a lot of time 
+    if (this.length != array.length)
+        return false;
+
+    for (var i = 0, l=this.length; i < l; i++) {
+        // Check if we have nested arrays
+        if (this[i] instanceof Array && array[i] instanceof Array) {
+            // recurse into the nested arrays
+            if (!this[i].equals(array[i]))
+                return false;       
+        }           
+        else if (this[i] != array[i]) { 
+            // Warning - two different object instances will never be equal: {x:20} != {x:20}
+            return false;   
+        }           
+    }       
+    return true;
+}
+
 var url = '/data/' + window.location.pathname.split("/")[2];
+
+var bkg = [0,0];
+var sig = [0,0];
+
+// Change Title
+var title = $('h1').html();
+title = title.split('/')[2].split('.')[0];
+$('h1').html(title);
 
 // Set the dimensions of the canvas / graph
 var margin = {top: 30, right: 20, bottom: 30, left: 150},
@@ -22,12 +55,6 @@ var xAxis = d3.svg.axis().scale(x)
 var yAxis = d3.svg.axis().scale(y)
     .orient("left").ticks(5);
 
-// Define the linear line
-var valueline = d3.svg.line()
-    .x(function(d) { return x(d.Time); })
-    .y(function(d) { return y(d[77]); })
-    .interpolate('linear');            
-
 // Adds the svg canvas
 var svg = d3.select("#graph")
     .append("svg")
@@ -39,14 +66,6 @@ var svg = d3.select("#graph")
 
 // Get the data
 d3.csv(url , function(error, data) {
-    var min = 201;
-    var max = 0;
-    for (var prop in data[0]) {
-        if (isInt(prop)) {
-            min = Math.min(min, prop);
-            max = Math.max(max, prop);
-        }
-    }
 
     data.forEach(function(d) {
         d.Time = +d.Time;
@@ -59,30 +78,53 @@ d3.csv(url , function(error, data) {
         }
     });
 
-    // Scale the range of the data
-    //x.domain(d3.extent(data, function(d) { return d.date; }));
     x.domain([0, d3.max(data, function(d) { return d.Time })]);
 
     y.domain([0, d3.max(data, function(d) { return d.total })]);
  
     var brush = d3.svg.brush()
         .x(x)
-        .extent([0, d3.max(data, function(d) { return d.Time })])
-        .on('brushend', brushended);
+        .extent([0, d3.max(data, function(d) { return d.Time })]);
 
-    function brushended() {
-      if (!d3.event.sourceEvent) return; // only transition after input
-      var extent0 = brush.extent();
-
-      console.log(extent0);
-    }
-
-    $('button').click(function(e) {
+    $('#signal').click(function(e) {
         e.preventDefault();
-        var extents = brush.extent();
-        window.open('/background/' + window.location.pathname.split("/")[2] + '?min=' + extents[0] + '&max=' + extents[1], '_blank');
-        window.location = '/';
-    })
+        sig = brush.extent();
+
+        svg.selectAll(".sig-rect").remove();
+
+        svg.append('rect')
+            .attr('class', 'sig-rect')
+            .attr('x', x(sig[0]))
+            .attr('width', x(sig[1]-sig[0]))
+            .attr('y', y(0)-height)
+            .attr('height', height)
+            .attr('fill', 'green')
+            .attr('fill-opacity', '0.1');
+    });
+
+    $('#background').click(function(e) {
+        e.preventDefault();
+        bkg = brush.extent();
+
+        svg.selectAll(".bkg-rect").remove();
+
+        svg.append('rect')
+            .attr('class', 'bkg-rect')
+            .attr('x', x(bkg[0]))
+            .attr('width', x(bkg[1]-bkg[0]))
+            .attr('y', y(0)-height)
+            .attr('height', height)
+            .attr('fill', 'red')
+            .attr('fill-opacity', '0.1');
+    });
+
+    $('#save').click(function(e) {
+        e.preventDefault();
+
+        if (!(bkg.equals([0,0])) && !(sig.equals([0,0]))) {
+            window.location = '/background/' + window.location.pathname.split("/")[2] + '?sig0=' + sig[0] + '&sig1=' + sig[1] + '&bkg0=' + bkg[0] + '&bkg1=' + bkg[1];
+        }
+    });
 
     var gBrush = svg.append("g")
         .attr("class", "brush")
@@ -92,17 +134,7 @@ d3.csv(url , function(error, data) {
     gBrush.selectAll("rect")
         .attr("height", height);
 
-    /*svg.selectAll("bar")
-    .data(data)
-    .enter().append("rect")
-    .style("fill", "steelblue")
-    .attr("x", function(d) { return x(d.date) -10; })
-    .attr("width",20)
-    .attr("y", function(d) { return y(d.value); })
-    .attr("height", function(d) { return height - y(d.value); });*/
-    
-  
-  svg.selectAll("dot")
+    svg.selectAll("dot")
         .data(data)
         .enter().append("circle")
         .attr("r",1)
@@ -129,8 +161,3 @@ d3.csv(url , function(error, data) {
         .call(yAxis);
 
 });
-
-// Change Title
-var title = $('h1').html();
-title = title.split('/')[2].split('.')[0];
-$('h1').html(title);
