@@ -28,10 +28,19 @@ Array.prototype.equals = function (array) {
     return true;
 }
 
+d3.selection.prototype.moveToBack = function() { 
+    return this.each(function() { 
+        var firstChild = this.parentNode.firstChild; 
+        if (firstChild) { 
+            this.parentNode.insertBefore(this, firstChild); 
+        } 
+    }); 
+};
+
 var url = '/data/' + window.location.pathname.split("/")[2];
 
-var bkg = [0,0];
-var sig = [0,0];
+var bkg = [];
+var sig = [];
 
 // Change Title
 var title = $('h1').html();
@@ -83,23 +92,30 @@ d3.csv(url , function(error, data) {
     y.domain([0, d3.max(data, function(d) { return d.total })]);
  
     var brush = d3.svg.brush()
-        .x(x)
-        .extent([0, d3.max(data, function(d) { return d.Time })]);
+        .x(x);
+        // .extent([0, d3.max(data, function(d) { return d.Time })]);
+
+    $('#clear').click(function(e) {
+        e.preventDefault();
+        svg.selectAll(".sig-rect").remove();
+        sig = [];
+    })
 
     $('#signal').click(function(e) {
         e.preventDefault();
-        sig = brush.extent();
-
-        svg.selectAll(".sig-rect").remove();
-
+        sig.push(brush.extent());
+        cur = brush.extent();
         svg.append('rect')
             .attr('class', 'sig-rect')
-            .attr('x', x(sig[0]))
-            .attr('width', x(sig[1]-sig[0]))
+            .attr('x', x(cur[0]))
+            .attr('width', x(cur[1]-cur[0]))
             .attr('y', y(0)-height)
             .attr('height', height)
             .attr('fill', 'green')
-            .attr('fill-opacity', '0.1');
+            .attr('fill-opacity', '0.1')
+            .moveToBack();
+        console.log(sig);
+        brush.clear();
     });
 
     $('#background').click(function(e) {
@@ -116,13 +132,27 @@ d3.csv(url , function(error, data) {
             .attr('height', height)
             .attr('fill', 'red')
             .attr('fill-opacity', '0.1');
+
+        brush.clear();
     });
 
     $('#save').click(function(e) {
         e.preventDefault();
 
-        if (!(bkg.equals([0,0])) && !(sig.equals([0,0]))) {
-            window.location = '/background/' + window.location.pathname.split("/")[2] + '?sig0=' + sig[0] + '&sig1=' + sig[1] + '&bkg0=' + bkg[0] + '&bkg1=' + bkg[1];
+        if (!(bkg.equals([])) && !(sig.equals([]))) {
+            for (var i=0; i < sig.length; i++) {
+                console.log(i);
+                url = '/background/' + window.location.pathname.split("/")[2];
+                data = {sig0: sig[i][0], sig1: sig[i][1], bkg0: bkg[0], bkg1: bkg[1], n: i}
+                query = 'sig0=' + sig[i][0] + '&sig1=' + sig[i][1] + '&bkg0=' + bkg[0] + '&bkg1=' + bkg[1] + '&n=' + i;
+                console.log(data);
+                $.ajax({
+                    type: "POST",
+                    url: url,
+                    data: data
+                });
+            }
+            // window.location.href = "/";
         }
     });
 
