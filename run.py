@@ -27,7 +27,11 @@ def is_filtered(filename):
     """
     Return true if filename ends in filtered.csv
     """
-    return '.' in filename and filename.rsplit('-',1)[1] == 'bg.csv'
+    try:
+        return '.' in filename and \
+               filename.rsplit('-', 1)[1] == 'bg.csv'
+    except IndexError:
+	    return False
 
 def ensure_dir(f):
     """
