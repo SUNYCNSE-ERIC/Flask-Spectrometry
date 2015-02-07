@@ -99,11 +99,12 @@ def return_data(filename):
 def return_smooth_data(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename +'-bg.csv')
 
-@app.route('/background/<filename>')
+@app.route('/background/<filename>', methods=['POST'])
 def sub_background(filename):
     pathname = os.path.join(app.config['UPLOAD_FOLDER'], filename +'.csv')
-    signal = [float(request.args.get('sig0')),float(request.args.get('sig1'))]
-    background = [float(request.args.get('bkg0')),float(request.args.get('bkg1'))]
+    signal = [float(request.form.get('sig0')),float(request.form.get('sig1'))]
+    background = [float(request.form.get('bkg0')),float(request.form.get('bkg1'))]
+    n = request.form.get('n')
 
     data = np.genfromtxt(pathname, delimiter=',', skip_header=1)
 
@@ -128,10 +129,7 @@ def sub_background(filename):
 
     bkg_mean = np.mean( np.sum( data[bkg_ind[0]:bkg_ind[1],:], axis = 1 ) )
 
-    print bkg_mean
-    print np.sum( data[bkg_ind[0]:bkg_ind[1],:], axis = 1 )
-
-    with file(pathname.rsplit('.', 1)[0] + '-bg.csv', 'w') as f:
+    with file(pathname.rsplit('.', 1)[0] + '-' + n + '-bg.csv', 'w') as f:
         f.write('Time,Counts,Cumulative\n')
         for i in xrange(time.shape[0]):
             total[i] = np.sum(data[i,:]) - bkg_mean

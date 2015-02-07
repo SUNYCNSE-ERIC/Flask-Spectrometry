@@ -3,7 +3,49 @@ function isInt(value) {
   return !isNaN(value) && (x | 0) === x;
 }
 
+// attach the .equals method to Array's prototype to call it on any array
+Array.prototype.equals = function (array) {
+    // if the other array is a falsy value, return
+    if (!array)
+        return false;
+
+    // compare lengths - can save a lot of time 
+    if (this.length != array.length)
+        return false;
+
+    for (var i = 0, l=this.length; i < l; i++) {
+        // Check if we have nested arrays
+        if (this[i] instanceof Array && array[i] instanceof Array) {
+            // recurse into the nested arrays
+            if (!this[i].equals(array[i]))
+                return false;       
+        }           
+        else if (this[i] != array[i]) { 
+            // Warning - two different object instances will never be equal: {x:20} != {x:20}
+            return false;   
+        }           
+    }       
+    return true;
+}
+
+d3.selection.prototype.moveToBack = function() { 
+    return this.each(function() { 
+        var firstChild = this.parentNode.firstChild; 
+        if (firstChild) { 
+            this.parentNode.insertBefore(this, firstChild); 
+        } 
+    }); 
+};
+
 var url = '/data/' + window.location.pathname.split("/")[2];
+
+var bkg = [];
+var sig = [];
+
+// Change Title
+var title = $('h1').html();
+title = title.split('/')[2].split('.')[0];
+$('h1').html(title);
 
 // Set the dimensions of the canvas / graph
 var margin = {top: 30, right: 20, bottom: 30, left: 150},
@@ -66,6 +108,7 @@ d3.csv(url , function(error, data) {
     y.domain([0, d3.max(data, function(d) { return d.total })]);
  
     var brush = d3.svg.brush()
+<<<<<<< HEAD
         .x(x)
         .extent([0, d3.max(data, function(d) { return d.Time })])
         .on('brushend', brushended);
@@ -76,13 +119,78 @@ d3.csv(url , function(error, data) {
 
       console.log(extent0);
     }
+=======
+        .x(x);
+        // .extent([0, d3.max(data, function(d) { return d.Time })]);
+
+    $('#clear').click(function(e) {
+        e.preventDefault();
+        svg.selectAll(".sig-rect").remove();
+        sig = [];
+    })
+
+    $('#signal').click(function(e) {
+        e.preventDefault();
+        sig.push(brush.extent());
+        cur = brush.extent();
+        svg.append('rect')
+            .attr('class', 'sig-rect')
+            .attr('x', x(cur[0]))
+            .attr('width', x(cur[1]-cur[0]))
+            .attr('y', y(0)-height)
+            .attr('height', height)
+            .attr('fill', 'green')
+            .attr('fill-opacity', '0.1')
+            .moveToBack();
+        console.log(sig);
+        brush.clear();
+    });
+
+    $('#background').click(function(e) {
+        e.preventDefault();
+        bkg = brush.extent();
+
+        svg.selectAll(".bkg-rect").remove();
+
+        svg.append('rect')
+            .attr('class', 'bkg-rect')
+            .attr('x', x(bkg[0]))
+            .attr('width', x(bkg[1]-bkg[0]))
+            .attr('y', y(0)-height)
+            .attr('height', height)
+            .attr('fill', 'red')
+            .attr('fill-opacity', '0.1');
+
+        brush.clear();
+    });
+>>>>>>> 05454cbcfb47e4a8f097fdf9d53212d86811d465
 
     $('button').click(function(e) {
         e.preventDefault();
+<<<<<<< HEAD
         var extents = brush.extent();
         window.open('/background/' + window.location.pathname.split("/")[2] + '?min=' + extents[0] + '&max=' + extents[1], '_blank');
         window.location = '/';
     })
+=======
+
+        if (!(bkg.equals([])) && !(sig.equals([]))) {
+            for (var i=0; i < sig.length; i++) {
+                console.log(i);
+                url = '/background/' + window.location.pathname.split("/")[2];
+                data = {sig0: sig[i][0], sig1: sig[i][1], bkg0: bkg[0], bkg1: bkg[1], n: i}
+                query = 'sig0=' + sig[i][0] + '&sig1=' + sig[i][1] + '&bkg0=' + bkg[0] + '&bkg1=' + bkg[1] + '&n=' + i;
+                console.log(data);
+                $.ajax({
+                    type: "POST",
+                    url: url,
+                    data: data
+                });
+            }
+            // window.location.href = "/";
+        }
+    });
+>>>>>>> 05454cbcfb47e4a8f097fdf9d53212d86811d465
 
     var gBrush = svg.append("g")
         .attr("class", "brush")
