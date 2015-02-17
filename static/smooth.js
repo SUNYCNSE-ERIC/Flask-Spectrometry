@@ -72,7 +72,7 @@ d3.csv(url , function(error, data) {
     data.forEach(function(d) {
         d.Time = +d.Time;
         d.Counts = +d.Counts;
-        d['Moving Sum'] = +d['Moving Sum']
+        d['Cumulative'] = +d['Cumulative']
     });
 
     // Scale the range of the data
@@ -81,7 +81,7 @@ d3.csv(url , function(error, data) {
 
     y.domain([0, d3.max(data, function(d) { return d.Counts })]);
 
-    y2.domain([0, d3.max(data, function(d) { return d['Moving Sum'] })]);
+    y2.domain([0, d3.max(data, function(d) { return d['Cumulative'] })]);
   
     svg.selectAll("dot")
         .data(data)
@@ -97,7 +97,7 @@ d3.csv(url , function(error, data) {
         .enter().append("circle")
         .attr("r",1)
         .attr("cx", function(d) { return x(d.Time) ; })
-        .attr("cy", function(d) { return y2(d['Moving Sum']); })
+        .attr("cy", function(d) { return y2(d['Cumulative']); })
         .attr("fill","red")
         .attr("stroke","red");
 
@@ -117,7 +117,7 @@ d3.csv(url , function(error, data) {
         .attr("stroke", "steelblue")
         .call(yAxis);
 
-    // Add the Y Axis for Moving Sum
+    // Add the Y Axis for Cumulative
     svg.append("g")
         .attr("class", "y2 axis")
         .attr("stroke", "red")

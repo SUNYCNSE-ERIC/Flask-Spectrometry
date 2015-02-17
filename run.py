@@ -13,7 +13,7 @@ app.debug = True
 
 # Set Upload Folder for files and Allowed Extensions
 UPLOAD_FOLDER = './cdf/'
-ALLOWED_EXTENSIONS = ['cdf']
+ALLOWED_EXTENSIONS = ['csv']
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 def allowed_file(filename):

@@ -108,18 +108,6 @@ d3.csv(url , function(error, data) {
     y.domain([0, d3.max(data, function(d) { return d.total })]);
  
     var brush = d3.svg.brush()
-<<<<<<< HEAD
-        .x(x)
-        .extent([0, d3.max(data, function(d) { return d.Time })])
-        .on('brushend', brushended);
-
-    function brushended() {
-      if (!d3.event.sourceEvent) return; // only transition after input
-      var extent0 = brush.extent();
-
-      console.log(extent0);
-    }
-=======
         .x(x);
         // .extent([0, d3.max(data, function(d) { return d.Time })]);
 
@@ -163,16 +151,9 @@ d3.csv(url , function(error, data) {
 
         brush.clear();
     });
->>>>>>> 05454cbcfb47e4a8f097fdf9d53212d86811d465
 
     $('button').click(function(e) {
         e.preventDefault();
-<<<<<<< HEAD
-        var extents = brush.extent();
-        window.open('/background/' + window.location.pathname.split("/")[2] + '?min=' + extents[0] + '&max=' + extents[1], '_blank');
-        window.location = '/';
-    })
-=======
 
         if (!(bkg.equals([])) && !(sig.equals([]))) {
             for (var i=0; i < sig.length; i++) {
@@ -190,7 +171,6 @@ d3.csv(url , function(error, data) {
             // window.location.href = "/";
         }
     });
->>>>>>> 05454cbcfb47e4a8f097fdf9d53212d86811d465
 
     var gBrush = svg.append("g")
         .attr("class", "brush")
