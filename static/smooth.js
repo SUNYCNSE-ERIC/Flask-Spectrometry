@@ -72,16 +72,16 @@ d3.csv(url , function(error, data) {
     data.forEach(function(d) {
         d.Time = +d.Time;
         d.Counts = +d.Counts;
-        d['Cumulative'] = +d['Cumulative']
+        d.Cumulative = +d.Cumulative;
     });
 
     // Scale the range of the data
     //x.domain(d3.extent(data, function(d) { return d.date; }));
-    x.domain([0, d3.max(data, function(d) { return d.Time })]);
+    x.domain([0, d3.max(data, function(d) { return d.Time; })]);
 
-    y.domain([0, d3.max(data, function(d) { return d.Counts })]);
+    y.domain([0, d3.max(data, function(d) { return d.Counts; })]);
 
-    y2.domain([0, d3.max(data, function(d) { return d['Cumulative'] })]);
+    y2.domain([0, d3.max(data, function(d) { return d.Cumulative; })]);
   
     svg.selectAll("dot")
         .data(data)
@@ -97,7 +97,7 @@ d3.csv(url , function(error, data) {
         .enter().append("circle")
         .attr("r",1)
         .attr("cx", function(d) { return x(d.Time) ; })
-        .attr("cy", function(d) { return y2(d['Cumulative']); })
+        .attr("cy", function(d) { return y2(d.Cumulative); })
         .attr("fill","red")
         .attr("stroke","red");
 
@@ -124,4 +124,56 @@ d3.csv(url , function(error, data) {
         .attr("transform", "translate(" + width + ",0)")
         .call(yAxis2);
 
+    var brush = d3.svg.brush()
+        .x(x)
+        .on('brushend', displaySlope);
+    brush.extent([]);
+
+    var gBrush = svg.append("g")
+        .attr("class", "brush")
+        .call(brush);
+
+    gBrush.selectAll("rect")
+        .attr("height", height);
+
+    function displaySlope() {
+        console.log(brush.extent());
+        var filtered = data.filter(function (d) { return d.Time >= brush.extent()[0] && d.Time <= brush.extent()[1]; });
+        console.log(filtered);
+        var xSeries = [];
+        var ySeries = [];
+        filtered.forEach(function (d) {
+            if (d.Cumulative) {
+                xSeries.push(d.Time);
+                ySeries.push(d.Cumulative);
+            };
+        });
+        if (xSeries.length) {
+            var linreg = leastSquares(xSeries, ySeries);
+            $('#regression').html('Slope: ' + linreg[0] + '<br />R<sup>2</sup>: ' + linreg[2]);
+        }
+    }
+
 });
+
+function leastSquares(xSeries, ySeries) {
+    var reduceSumFunc = function(prev, cur) { return prev + cur; };
+    
+    var xBar = xSeries.reduce(reduceSumFunc) * 1.0 / xSeries.length;
+    var yBar = ySeries.reduce(reduceSumFunc) * 1.0 / ySeries.length;
+
+    var ssXX = xSeries.map(function(d) { return Math.pow(d - xBar, 2); })
+        .reduce(reduceSumFunc);
+    
+    var ssYY = ySeries.map(function(d) { return Math.pow(d - yBar, 2); })
+        .reduce(reduceSumFunc);
+        
+    var ssXY = xSeries.map(function(d, i) { return (d - xBar) * (ySeries[i] - yBar); })
+        .reduce(reduceSumFunc);
+        
+    var slope = ssXY / ssXX;
+    var intercept = yBar - (xBar * slope);
+    var rSquare = Math.pow(ssXY, 2) / (ssXX * ssYY);
+    
+    return [slope, intercept, rSquare];
+}

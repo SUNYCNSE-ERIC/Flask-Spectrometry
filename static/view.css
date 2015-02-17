@@ -1,4 +1,4 @@
-@import url(http://fonts.googleapis.com/css?family=Raleway);
+@import url(http://fonts.googleapis.com/css?family=Raleway&Open+Sans);
 
 * {
     margin: 0;
@@ -46,4 +46,9 @@ path {
     stroke: black; 
     stroke-width: 2;
     fill: none;
+}
+
+#regression {
+    font-family: 'Open Sans', sans-serif;
+    font-size: 25px;
 }
