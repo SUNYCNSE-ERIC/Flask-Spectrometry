@@ -48,7 +48,7 @@ path {
     fill: none;
 }
 
-#regression {
+#maxcum, #regression {
     font-family: 'Open Sans', sans-serif;
     font-size: 25px;
 }

@@ -83,6 +83,8 @@ d3.csv(url , function(error, data) {
 
     y2.domain([0, d3.max(data, function(d) { return d.Cumulative; })]);
   
+    $('#maxcum').html("Max Counts: " + d3.max(data, function(d) { return d.Cumulative; }));
+
     svg.selectAll("dot")
         .data(data)
         .enter().append("circle")
@@ -93,7 +95,7 @@ d3.csv(url , function(error, data) {
         .attr("stroke","steelblue");
 
     svg.selectAll("dot")
-        .data(data)
+        .data(data.filter(function (d) { return d.Cumulative > 0; }))
         .enter().append("circle")
         .attr("r",1)
         .attr("cx", function(d) { return x(d.Time) ; })
