@@ -111,11 +111,17 @@ d3.csv(url , function(error, data) {
         .x(x);
         // .extent([0, d3.max(data, function(d) { return d.Time })]);
 
-    $('#clear').click(function(e) {
+    $('#clearsig').click(function(e) {
         e.preventDefault();
         svg.selectAll(".sig-rect").remove();
         sig = [];
-    })
+    });
+
+    $('#clearbkg').click(function(e) {
+        e.preventDefault();
+        svg.selectAll(".bkg-rect").remove();
+        bkg = [];
+    });    
 
     $('#signal').click(function(e) {
         e.preventDefault();
@@ -130,20 +136,17 @@ d3.csv(url , function(error, data) {
             .attr('fill', 'green')
             .attr('fill-opacity', '0.1')
             .moveToBack();
-        console.log(sig);
         brush.clear();
     });
 
     $('#background').click(function(e) {
         e.preventDefault();
-        bkg = brush.extent();
-
-        svg.selectAll(".bkg-rect").remove();
-
+        bkg.push(brush.extent());
+        cur = brush.extent();
         svg.append('rect')
             .attr('class', 'bkg-rect')
-            .attr('x', x(bkg[0]))
-            .attr('width', x(bkg[1]-bkg[0]))
+            .attr('x', x(cur[0]))
+            .attr('width', x(cur[1]-cur[0]))
             .attr('y', y(0)-height)
             .attr('height', height)
             .attr('fill', 'red')
@@ -152,21 +155,24 @@ d3.csv(url , function(error, data) {
         brush.clear();
     });
 
-    $('button').click(function(e) {
+    $('#save').click(function(e) {
         e.preventDefault();
 
         if (!(bkg.equals([])) && !(sig.equals([]))) {
             for (var i=0; i < sig.length; i++) {
                 console.log(i);
                 url = '/background/' + window.location.pathname.split("/")[2];
-                data = {sig0: sig[i][0], sig1: sig[i][1], bkg0: bkg[0], bkg1: bkg[1], n: i}
-                query = 'sig0=' + sig[i][0] + '&sig1=' + sig[i][1] + '&bkg0=' + bkg[0] + '&bkg1=' + bkg[1] + '&n=' + i;
+                data = {sig0: sig[i][0], sig1: sig[i][1], bkg0: bkg[i][0], bkg1: bkg[i][1], n: i}
+                // query = 'sig0=' + sig[i][0] + '&sig1=' + sig[i][1] + '&bkg0=' + bkg[i][0] + '&bkg1=' + bkg[i]   [1] + '&n=' + i;
                 console.log(data);
                 $.ajax({
                     type: "POST",
                     url: url,
                     data: data
                 });
+                if (i + 1 == sig.length) {
+                    window.location = '/';
+                }
             }
             // window.location.href = "/";
         }
@@ -217,8 +223,3 @@ d3.csv(url , function(error, data) {
         .call(yAxis);
 
 });
-
-// Change Title
-var title = $('h1').html();
-title = title.split('/')[2].split('.')[0];
-$('h1').html(title);

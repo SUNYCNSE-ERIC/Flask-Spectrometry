@@ -83,7 +83,7 @@ d3.csv(url , function(error, data) {
 
     y2.domain([0, d3.max(data, function(d) { return d.Cumulative; })]);
   
-    $('#maxcum').html("Max Counts: " + d3.max(data, function(d) { return d.Cumulative; }));
+    $('#maxcum').html("Total Counts: " + d3.max(data, function(d) { return d.Cumulative; }));
 
     svg.selectAll("dot")
         .data(data)

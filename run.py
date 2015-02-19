@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, redirect, url_for, send_from_
 from werkzeug import secure_filename
 from netCDFtoCSV import convertFile
 import numpy as np
+import json
 from scipy.signal import gaussian
 from scipy.ndimage import filters
 
@@ -47,7 +48,7 @@ def index():
     Home of the app.  Get's a list a files with the ".cdf" extension and filtered files for the "index.html" template.
     """
     ensure_dir(app.config['UPLOAD_FOLDER'])
-    file_list = [f.rsplit('.', 1)[0] for f in os.listdir(UPLOAD_FOLDER) if allowed_file(f)]
+    file_list = [f.rsplit('.', 1)[0] for f in os.listdir(UPLOAD_FOLDER) if allowed_file(f) and not is_filtered(f)]
     smoothed_files = [f.rsplit('.',1)[0].rsplit('-',1)[0] for f in os.listdir(UPLOAD_FOLDER) if is_filtered(f)]
     return  render_template('index.html', file_list = file_list, smoothed = smoothed_files)
 
@@ -154,7 +155,7 @@ def sub_background(filename):
     #             f.write(',' + str(filtered_sum))
     #         f.write('\n')
 
-    return redirect(url_for('index'))
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'} 
 
 # def sums(filtered):
 #     cum_sum = 0
