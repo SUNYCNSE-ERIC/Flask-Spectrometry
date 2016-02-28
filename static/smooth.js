@@ -73,6 +73,7 @@ d3.csv(url , function(error, data) {
         d.Time = +d.Time;
         d.Counts = +d.Counts;
         d.Cumulative = +d.Cumulative;
+        d.Subtracted = +d.Subtracted;
     });
 
     // Scale the range of the data
@@ -84,6 +85,7 @@ d3.csv(url , function(error, data) {
     y2.domain([0, d3.max(data, function(d) { return d.Cumulative; })]);
   
     $('#maxcum').html("Total Counts: " + d3.max(data, function(d) { return d.Cumulative; }));
+    $('#subtracted').html("Background Subtracted:" + d3.max(data, function(d { return d.Subtracted; })))
 
     svg.selectAll("dot")
         .data(data)
