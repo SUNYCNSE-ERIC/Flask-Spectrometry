@@ -131,12 +131,12 @@ def sub_background(filename):
     bkg_mean = np.mean( np.sum( data[bkg_ind[0]:bkg_ind[1],:], axis = 1 ) )
 
     with file(pathname.rsplit('.', 1)[0] + '-' + n + '-bg.csv', 'w') as f:
-        f.write('Time,Counts,Cumulative\n')
+        f.write('Time,Counts,Cumulative,Subtracted\n')
         for i in xrange(time.shape[0]):
             total[i] = np.sum(data[i,:]) - bkg_mean
             if i >= sig_ind[0] and i < sig_ind[1]:
                 cum[i] = cum[i-1] + total[i]
-            f.write(','.join([str(j) for j in [time[i], total[i], cum[i]]]))
+            f.write(','.join([str(j) for j in [time[i], total[i], cum[i], bkg_mean]]))
             f.write('\n')
 
     # data = np.genfromtxt(os.path.join(app.config['UPLOAD_FOLDER'],bg_file), delimiter=',', skip_header=1)
