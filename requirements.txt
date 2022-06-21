@@ -4,5 +4,5 @@ MarkupSafe==0.23
 Werkzeug==0.15.3
 argparse==1.2.1
 itsdangerous==0.24
-numpy==1.8.2
+numpy==1.22.0
 scipy==0.14.0
